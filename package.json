@@ -5,7 +5,7 @@
   "author": "Sebastian Patrick Klen",
   "type": "module",
   "scripts": {
-    "vido-cli": "pnpm --filter vido-cli"
+    "cli": "pnpm --filter cli"
   },
   "engines": {
     "node": ">=22",
