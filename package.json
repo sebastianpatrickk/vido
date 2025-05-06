@@ -4,7 +4,7 @@
   "description": "Vido is a CLI tool for deploying and managing videos.",
   "author": "Sebastian Patrick Klen",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "vido-cli": "pnpm --filter vido-cli"
   },
   "engines": {
     "node": ">=22",
