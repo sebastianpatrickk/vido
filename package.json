@@ -3,6 +3,7 @@
   "private": true,
   "description": "Vido is a CLI tool for deploying and managing videos.",
   "author": "Sebastian Patrick Klen",
+  "type": "module",
   "scripts": {
     "vido-cli": "pnpm --filter vido-cli"
   },
