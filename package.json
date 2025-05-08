@@ -5,7 +5,9 @@
   "author": "Sebastian Patrick Klen",
   "type": "module",
   "scripts": {
-    "cli": "pnpm --filter cli"
+    "cli": "pnpm --filter cli",
+    "dev": "pnpm --filter cli dev",
+    "build": "pnpm --filter cli build"
   },
   "engines": {
     "node": ">=22",
