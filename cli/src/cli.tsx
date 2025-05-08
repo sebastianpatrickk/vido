@@ -7,7 +7,7 @@ import { loadConfig } from "./utils/config";
 
 const config = loadConfig();
 
-if (!config.apiKey) {
+if (!config.apiKey.length) {
   console.error(
     `\n${chalk.red(`Missing Cloudflare API key.`)}\n\n` +
       `Set the environment variable ${chalk.bold(`CLOUDFLARE_API_KEY`)} ` +
