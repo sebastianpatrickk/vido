@@ -6,9 +6,8 @@
   "type": "module",
   "scripts": {
     "cli": "pnpm --filter cli",
-    "dev": "pnpm --filter cli dev",
-    "build": "pnpm --filter cli build",
-    "api": "pnpm --filter api"
+    "api": "pnpm --filter api",
+    "web": "pnpm --filter web"
   },
   "engines": {
     "node": ">=22",
