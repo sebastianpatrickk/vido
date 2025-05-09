@@ -1,0 +1,6 @@
+printWidth = 80
+quoteProps = "consistent"
+semi = true
+tabWidth = 2
+trailingComma = "all"
+proseWrap = "preserve"
