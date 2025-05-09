@@ -1,14 +1,8 @@
-import {
-  generateSessionToken,
-  createSession,
-  setSessionTokenCookie,
-} from "@/lib/auth/session";
+import { createSession } from "@/lib/auth/session";
 import { google } from "@/lib/auth/oauth";
 import { cookies } from "next/headers";
 import { createUser, getUserFromGoogleId } from "@/lib/auth/user";
-// import { ObjectParser } from "@pilcrowjs/object-parser";
 import { globalGETRateLimit } from "@/lib/auth/request";
-
 import { decodeIdToken, type OAuth2Tokens } from "arctic";
 
 export async function GET(request: Request): Promise<Response> {
@@ -62,7 +56,7 @@ export async function GET(request: Request): Promise<Response> {
 
   const existingUser = await getUserFromGoogleId(googleId);
   if (existingUser !== null) {
-    const session = await createSession(existingUser.id);
+    await createSession(existingUser.id);
     return new Response(null, {
       status: 302,
       headers: {
@@ -72,7 +66,7 @@ export async function GET(request: Request): Promise<Response> {
   }
 
   const user = await createUser(googleId, email, name, picture);
-  const session = await createSession(user.id);
+  await createSession(user.id);
   return new Response(null, {
     status: 302,
     headers: {

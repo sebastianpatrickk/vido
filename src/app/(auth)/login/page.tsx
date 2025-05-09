@@ -1,9 +1,9 @@
-"use server";
-
 import { globalGETRateLimit } from "@/lib/auth/request";
 import { getCurrentSession } from "@/lib/auth/session";
-import Link from "next/link";
 import { redirect } from "next/navigation";
+import GoogleOAuthButton from "@/components/google-oauth-button";
+
+export const dynamic = "force-dynamic";
 
 export default async function Page() {
   if (!globalGETRateLimit()) {
@@ -11,12 +11,12 @@ export default async function Page() {
   }
   const { user } = await getCurrentSession();
   if (user !== null) {
-    return redirect("/");
+    return redirect("/dashboard");
   }
   return (
-    <div className="w-full p-4 max-w-md">
-      <Link href="/api/auth/google">Sign in with Google</Link>
-      <h1>Sign in</h1>
+    <div className="w-full p-4 max-w-sm">
+      <h1 className="text-lg text-center font-medium mb-6">Login to Vido</h1>
+      <GoogleOAuthButton />
     </div>
   );
 }
