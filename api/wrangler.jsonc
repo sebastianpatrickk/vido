@@ -2,7 +2,13 @@
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "api",
   "main": "src/index.ts",
-  "compatibility_date": "2025-05-08"
+  "compatibility_date": "2025-05-08",
+  "r2_buckets": [
+    {
+      "binding": "doteky-pohybu",
+      "bucket_name": "doteky-pohybu-bucket"
+    }
+  ]
   // "compatibility_flags": [
   //   "nodejs_compat"
   // ],

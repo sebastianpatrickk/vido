@@ -17,6 +17,7 @@
     "dist"
   ],
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.804.0",
     "dotenv": "^16.5.0",
     "ink": "^4.1.0",
     "meow": "^11.0.0",

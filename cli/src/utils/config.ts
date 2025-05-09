@@ -3,14 +3,20 @@ import { config } from "dotenv";
 // Load environment variables from .env file
 config();
 
-export const CLOUDFLARE_API_KEY = process.env["CLOUDFLARE_API_KEY"] || "";
+const bucketCredentials = {
+  accessKeyId: process.env["R2_ACCESS_KEY_ID"] || "",
+  secretAccessKey: process.env["R2_SECRET_ACCESS_KEY"] || "",
+};
 
 export type AppConfig = {
-  apiKey: string;
+  bucketCredentials: {
+    accessKeyId: string;
+    secretAccessKey: string;
+  };
 };
 
 export function loadConfig(): AppConfig {
   return {
-    apiKey: CLOUDFLARE_API_KEY,
+    bucketCredentials,
   };
 }

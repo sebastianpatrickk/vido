@@ -3,11 +3,12 @@ import React from "react";
 import { render } from "ink";
 import App from "./app.js";
 import chalk from "chalk";
-import { loadConfig } from "./utils/config";
 
-const config = loadConfig();
-
-if (!config.apiKey.length) {
+const bucketCredentials = getBu;
+if (
+  !config.bucketCredentials.accessKeyId.length ||
+  !config.bucketCredentials.secretAccessKey.length
+) {
   console.error(
     `\n${chalk.red(`Missing Cloudflare API key.`)}\n\n` +
       `Set the environment variable ${chalk.bold(`CLOUDFLARE_API_KEY`)} ` +

@@ -7,7 +7,8 @@
   "scripts": {
     "cli": "pnpm --filter cli",
     "dev": "pnpm --filter cli dev",
-    "build": "pnpm --filter cli build"
+    "build": "pnpm --filter cli build",
+    "api": "pnpm --filter api"
   },
   "engines": {
     "node": ">=22",
