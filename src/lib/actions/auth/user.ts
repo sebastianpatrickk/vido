@@ -2,6 +2,10 @@ import { redis } from "@/lib/redis";
 import { User, userSchema } from "@/lib/validations/user";
 import { nanoid } from "nanoid";
 
+export const USER_KEY = "user";
+export const USERS_KEY = "users";
+export const GOOGLE_ID_KEY = "googleId";
+
 export async function createUser(
   googleId: string,
   email: string,
@@ -17,9 +21,11 @@ export async function createUser(
     picture,
   };
 
-  await redis.hset(`user:${id}`, user);
-  await redis.set(`user:googleId:${googleId}`, id);
-  await redis.sadd("users", id);
+  await Promise.all([
+    redis.hset(`${USER_KEY}:${id}`, user),
+    redis.set(`${USER_KEY}:${GOOGLE_ID_KEY}:${googleId}`, id),
+    redis.sadd(USERS_KEY, id),
+  ]);
 
   return user;
 }
@@ -27,12 +33,12 @@ export async function createUser(
 export async function getUserFromGoogleId(
   googleId: string,
 ): Promise<User | null> {
-  const userId = await redis.get(`user:googleId:${googleId}`);
+  const userId = await redis.get(`${USER_KEY}:${GOOGLE_ID_KEY}:${googleId}`);
   if (!userId) {
     return null;
   }
 
-  const userData = await redis.hgetall(`user:${userId}`);
+  const userData = await redis.hgetall(`${USER_KEY}:${userId}`);
   if (!userData) {
     return null;
   }

@@ -4,6 +4,7 @@ import { cookies } from "next/headers";
 import { createUser, getUserFromGoogleId } from "@/lib/actions/auth/user";
 import { globalGETRateLimit } from "@/lib/actions/auth/request";
 import { decodeIdToken, type OAuth2Tokens } from "arctic";
+import { isEmailAllowed } from "@/lib/actions/auth/allowed-emails";
 
 export async function GET(request: Request): Promise<Response> {
   if (!globalGETRateLimit()) {
@@ -63,6 +64,16 @@ export async function GET(request: Request): Promise<Response> {
         Location: "/",
       },
     });
+  }
+
+  const allowed = await isEmailAllowed(email);
+  if (!allowed) {
+    return new Response(
+      "Your email is not authorized to access this application.",
+      {
+        status: 403,
+      },
+    );
   }
 
   const user = await createUser(googleId, email, name, picture);

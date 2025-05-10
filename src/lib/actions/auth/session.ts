@@ -7,6 +7,9 @@ import {
   sessionSchema,
 } from "@/lib/validations/session";
 import { userSchema } from "@/lib/validations/user";
+import { USER_KEY } from "./user";
+
+export const SESSION_KEY = "session";
 
 export function generateSessionToken(): string {
   const tokenBytes = new Uint8Array(32);
@@ -25,7 +28,7 @@ export async function getSessionById(
   sessionId: string,
 ): Promise<Session | null> {
   try {
-    const sessionData = await redis.hgetall(`session:${sessionId}`);
+    const sessionData = await redis.hgetall(`${SESSION_KEY}:${sessionId}`);
     if (!sessionData) {
       return null;
     }
@@ -48,7 +51,7 @@ export async function validateSessionToken(
 ): Promise<SessionValidationResult> {
   try {
     const sessionId = await hashToken(token);
-    const sessionData = await redis.hgetall(`session:${sessionId}`);
+    const sessionData = await redis.hgetall(`${SESSION_KEY}:${sessionId}`);
 
     if (!sessionData) {
       return { session: null, user: null };
@@ -64,21 +67,21 @@ export async function validateSessionToken(
     const now = Date.now();
 
     if (now >= session.expiresAt) {
-      await redis.del(`session:${sessionId}`);
+      await redis.del(`${SESSION_KEY}:${sessionId}`);
       return { session: null, user: null };
     }
 
     // Refresh session if it's close to expiring (15 days before expiry)
     if (now >= session.expiresAt - 1000 * 60 * 60 * 24 * 15) {
       session.expiresAt = now + 1000 * 60 * 60 * 24 * 30;
-      await redis.hset(`session:${sessionId}`, session);
+      await redis.hset(`${SESSION_KEY}:${sessionId}`, session);
       await redis.expire(
-        `session:${sessionId}`,
+        `${SESSION_KEY}:${sessionId}`,
         Math.floor((session.expiresAt - Date.now()) / 1000),
       );
     }
 
-    const userData = await redis.hgetall(`user:${session.userId}`);
+    const userData = await redis.hgetall(`${USER_KEY}:${session.userId}`);
     if (!userData) {
       return { session: null, user: null };
     }
@@ -114,7 +117,7 @@ export const getCurrentSession = cache(
 
 export async function invalidateSession(sessionId: string): Promise<void> {
   try {
-    await redis.del(`session:${sessionId}`);
+    await redis.del(`${SESSION_KEY}:${sessionId}`);
   } catch (error) {
     console.error("Error invalidating session:", error);
     throw error;
@@ -123,7 +126,7 @@ export async function invalidateSession(sessionId: string): Promise<void> {
 
 export async function invalidateUserSessions(userId: string): Promise<void> {
   try {
-    const sessions = await redis.keys(`session:*`);
+    const sessions = await redis.keys(`${SESSION_KEY}:*`);
     for (const sessionKey of sessions) {
       const sessionData = await redis.hgetall(sessionKey);
       if (sessionData?.userId === userId) {
@@ -181,9 +184,9 @@ export async function createSession(userId: string): Promise<Session> {
       expiresAt: Date.now() + 1000 * 60 * 60 * 24 * 30, // 30 days
     };
 
-    await redis.hset(`session:${sessionId}`, session);
+    await redis.hset(`${SESSION_KEY}:${sessionId}`, session);
     await redis.expire(
-      `session:${sessionId}`,
+      `${SESSION_KEY}:${sessionId}`,
       Math.floor((session.expiresAt - Date.now()) / 1000),
     );
     await setSessionTokenCookie(token, new Date(session.expiresAt));
