@@ -1,5 +1,5 @@
-import { redis } from "../redis";
-import { User, userSchema } from "../validations/user";
+import { redis } from "@/lib/redis";
+import { User, userSchema } from "@/lib/validations/user";
 import { nanoid } from "nanoid";
 
 export async function createUser(
@@ -19,6 +19,7 @@ export async function createUser(
 
   await redis.hset(`user:${id}`, user);
   await redis.set(`user:googleId:${googleId}`, id);
+  await redis.sadd("users", id);
 
   return user;
 }

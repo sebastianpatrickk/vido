@@ -1,7 +1,7 @@
 import { generateState, generateCodeVerifier } from "arctic";
 import { google } from "@/lib/auth/oauth";
 import { cookies } from "next/headers";
-import { globalGETRateLimit } from "@/lib/auth/request";
+import { globalGETRateLimit } from "@/lib/actions/auth/request";
 
 export async function GET(): Promise<Response> {
   if (!globalGETRateLimit()) {

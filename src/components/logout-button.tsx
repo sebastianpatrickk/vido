@@ -1,6 +1,6 @@
 "use client";
 
-import { logoutAction } from "@/lib/actions/logout";
+import { logoutAction } from "@/lib/actions/auth/logout";
 import { useActionState } from "react";
 import { Button, buttonVariants } from "./ui/button";
 import { cn } from "@/lib/utils";

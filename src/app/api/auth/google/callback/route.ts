@@ -1,8 +1,8 @@
-import { createSession } from "@/lib/auth/session";
+import { createSession } from "@/lib/actions/auth/session";
 import { google } from "@/lib/auth/oauth";
 import { cookies } from "next/headers";
-import { createUser, getUserFromGoogleId } from "@/lib/auth/user";
-import { globalGETRateLimit } from "@/lib/auth/request";
+import { createUser, getUserFromGoogleId } from "@/lib/actions/auth/user";
+import { globalGETRateLimit } from "@/lib/actions/auth/request";
 import { decodeIdToken, type OAuth2Tokens } from "arctic";
 
 export async function GET(request: Request): Promise<Response> {

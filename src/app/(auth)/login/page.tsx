@@ -1,5 +1,5 @@
-import { globalGETRateLimit } from "@/lib/auth/request";
-import { getCurrentSession } from "@/lib/auth/session";
+import { globalGETRateLimit } from "@/lib/actions/auth/request";
+import { getCurrentSession } from "@/lib/actions/auth/session";
 import { redirect } from "next/navigation";
 import GoogleOAuthButton from "@/components/google-oauth-button";
 

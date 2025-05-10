@@ -1,5 +1,5 @@
 import { buttonVariants } from "@/components/ui/button";
-import { getCurrentSession } from "@/lib/auth/session";
+import { getCurrentSession } from "@/lib/actions/auth/session";
 import { CircleHelp } from "lucide-react";
 import Link from "next/link";
 import DashboardNav from "./dashboard-nav";

@@ -1,11 +1,11 @@
 "use server";
 
-import { globalPOSTRateLimit } from "@/lib/auth/request";
+import { globalPOSTRateLimit } from "@/lib/actions/auth/request";
 import {
   deleteSessionTokenCookie,
   getCurrentSession,
   invalidateSession,
-} from "@/lib/auth/session";
+} from "@/lib/actions/auth/session";
 import { redirect } from "next/navigation";
 
 interface ActionResult {

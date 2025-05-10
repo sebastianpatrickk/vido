@@ -1,12 +1,12 @@
-import { redis } from "../redis";
+import { redis } from "@/lib/redis";
 import { cookies } from "next/headers";
 import { cache } from "react";
 import {
   Session,
   SessionValidationResult,
   sessionSchema,
-} from "../validations/session";
-import { userSchema } from "../validations/user";
+} from "@/lib/validations/session";
+import { userSchema } from "@/lib/validations/user";
 
 export function generateSessionToken(): string {
   const tokenBytes = new Uint8Array(32);
