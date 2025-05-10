@@ -71,9 +71,11 @@ export async function validateSessionToken(
     // Refresh session if it's close to expiring (15 days before expiry)
     if (now >= session.expiresAt - 1000 * 60 * 60 * 24 * 15) {
       session.expiresAt = now + 1000 * 60 * 60 * 24 * 30;
-      await redis.hset(`session:${sessionId}`, {
-        expiresAt: session.expiresAt,
-      });
+      await redis.hset(`session:${sessionId}`, session);
+      await redis.expire(
+        `session:${sessionId}`,
+        Math.floor((session.expiresAt - Date.now()) / 1000),
+      );
     }
 
     const userData = await redis.hgetall(`user:${session.userId}`);
@@ -180,6 +182,10 @@ export async function createSession(userId: string): Promise<Session> {
     };
 
     await redis.hset(`session:${sessionId}`, session);
+    await redis.expire(
+      `session:${sessionId}`,
+      Math.floor((session.expiresAt - Date.now()) / 1000),
+    );
     await setSessionTokenCookie(token, new Date(session.expiresAt));
     return session;
   } catch (error) {
