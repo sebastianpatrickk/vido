@@ -4,7 +4,7 @@ import { cookies } from "next/headers";
 import { createUser, getUserFromGoogleId } from "@/lib/actions/auth/user";
 import { globalGETRateLimit } from "@/lib/actions/auth/request";
 import { decodeIdToken, type OAuth2Tokens } from "arctic";
-import { isEmailAllowed } from "@/lib/actions/auth/allowed-emails";
+import { isEmailAllowed } from "@/lib/actions/auth/allowed-email";
 
 export async function GET(request: Request): Promise<Response> {
   if (!globalGETRateLimit()) {

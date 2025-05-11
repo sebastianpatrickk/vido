@@ -1,9 +1,12 @@
 import MaxWidthWrapper from "@/components/max-width-wrapper";
-import { PageHeaderCard } from "@/components/page-header-card";
 import { getCurrentSession } from "@/lib/actions/auth/session";
 import { redirect } from "next/navigation";
 
-export default async function Dashboard() {
+export default async function ApiKeysLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   const { user } = await getCurrentSession();
 
   if (!user) {
@@ -11,11 +14,8 @@ export default async function Dashboard() {
   }
 
   return (
-    <MaxWidthWrapper>
-      <PageHeaderCard
-        title="Dashboard"
-        description="Welcome to the dashboard"
-      />
+    <MaxWidthWrapper className="flex flex-col gap-y-4">
+      {children}
     </MaxWidthWrapper>
   );
 }

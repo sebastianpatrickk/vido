@@ -9,9 +9,11 @@ export const env = createEnv({
     GOOGLE_CLIENT_SECRET: z.string(),
   },
   client: {
+    NEXT_PUBLIC_OWNER_EMAIL: z.string().email(),
     NEXT_PUBLIC_SITE_URL: z.string().url(),
   },
   runtimeEnv: {
+    NEXT_PUBLIC_OWNER_EMAIL: process.env.NEXT_PUBLIC_OWNER_EMAIL,
     KV_REST_API_URL: process.env.KV_REST_API_URL,
     KV_REST_API_TOKEN: process.env.KV_REST_API_TOKEN,
     GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID,

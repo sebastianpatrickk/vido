@@ -4,7 +4,7 @@ import {
   addAllowedEmail,
   getAllowedEmails,
   removeAllowedEmail,
-} from "@/lib/actions/auth/allowed-emails";
+} from "@/lib/actions/auth/allowed-email";
 
 const emailSchema = z.object({
   email: z.string().email(),
