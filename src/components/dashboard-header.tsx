@@ -5,9 +5,14 @@ import Link from "next/link";
 import DashboardNav from "./dashboard-nav";
 import AuthPopover from "./auth-popover";
 import { ModeToggle } from "./mode-toggle";
+import { redirect } from "next/navigation";
 
 export default async function DashboardHeader() {
   const { user } = await getCurrentSession();
+
+  if (!user) {
+    redirect("/login");
+  }
 
   return (
     <header className="flex h-12 items-center flex-shrink-0 border-b">
@@ -15,7 +20,7 @@ export default async function DashboardHeader() {
         <Link href="/dashboard" className="text-sm font-medium">
           Vido
         </Link>
-        <DashboardNav />
+        <DashboardNav user={user} />
 
         <div className="flex items-center gap-2">
           <Link

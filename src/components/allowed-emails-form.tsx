@@ -43,8 +43,6 @@ export default function AllowedEmailsForm() {
     name: "allowedEmails",
   });
 
-  console.log(form.formState.errors);
-
   const onSubmit = async (data: AllowedEmailsForm) => {
     await editAllowedEmails(data.allowedEmails, {
       onSuccess: (data) => {

@@ -1,10 +1,12 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { env } from "@/env";
+import { User } from "@/lib/validations/user";
 import { Files, House, KeyRound, Settings } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 
-const navItems = [
+const getNavItems = (isOwner: boolean) => [
   {
     label: "Overview",
     href: "/dashboard",
@@ -20,21 +22,25 @@ const navItems = [
     href: "/dashboard/api-keys",
     icon: <KeyRound className="size-4" />,
   },
-  {
-    label: "Settings",
-    href: "/dashboard/settings",
-    icon: <Settings className="size-4" />,
-  },
+  ...(isOwner
+    ? [
+        {
+          label: "Settings",
+          href: "/dashboard/settings",
+          icon: <Settings className="size-4" />,
+        },
+      ]
+    : []),
 ];
 
-export default function DashboardNav() {
+export default function DashboardNav({ user }: { user: User }) {
   const router = useRouter();
   const pathname = usePathname();
   const isActive = (path: string) => pathname === path;
 
   return (
     <div className="flex items-center gap-2">
-      {navItems.map((item) => (
+      {getNavItems(user.email === env.NEXT_PUBLIC_OWNER_EMAIL).map((item) => (
         <Button
           key={item.href}
           variant="ghost"
