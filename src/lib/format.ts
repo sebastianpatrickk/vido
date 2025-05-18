@@ -15,7 +15,7 @@ export function formatDate(
     return "";
   }
 }
-export function formatFileSize(bytes: number | undefined): string {
+export function formatFileSize(bytes: number | null | undefined): string {
   if (!bytes) return "0 B";
 
   const units = ["B", "KB", "MB", "GB", "TB", "PB"];

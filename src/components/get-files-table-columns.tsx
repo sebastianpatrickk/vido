@@ -86,7 +86,7 @@ export function getFilesTableColumns({
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title="Size" />
       ),
-      cell: ({ cell }) => formatFileSize(cell.getValue<number>()),
+      cell: ({ cell }) => formatFileSize(cell.getValue<number | null>()),
       meta: {
         label: "Size",
         variant: "range",
@@ -101,7 +101,7 @@ export function getFilesTableColumns({
         <DataTableColumnHeader column={column} title="Tags" />
       ),
       cell: ({ cell }) => {
-        const tags = cell.getValue<string[]>();
+        const tags = cell.getValue<string[] | null>();
 
         if (!tags) return null;
 
