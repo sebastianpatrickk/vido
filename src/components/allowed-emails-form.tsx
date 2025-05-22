@@ -25,9 +25,14 @@ import {
   useGetAllowedEmails,
 } from "@/lib/queries/allowed-email";
 import React from "react";
+import { useQuery } from "convex/react";
+import { api } from "../../convex/_generated/api";
 
 export default function AllowedEmailsForm() {
   const { data: allowedEmails } = useGetAllowedEmails();
+  const tasks = useQuery(api.tasks.get);
+
+  console.log(tasks);
 
   const { mutateAsync: editAllowedEmails } = useEditAllowedEmails();
 
