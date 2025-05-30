@@ -12,6 +12,9 @@ const (
 	uploadStepFolder
 	uploadStepScan
 	uploadStepSummary
+	selectOutputDirMenu
+	selectOutputDir
+	processing
 	exploreFiles
 	done
 )
@@ -22,12 +25,15 @@ type scanResultMsg struct {
 }
 
 type model struct {
-	state      state
-	menuIndex  int
-	videos     []VideoFile
-	scanError  string
-	folderPath string
-	textinput  textinput.Model
+	state         state
+	menuIndex     int
+	outputMenuIndex int
+	videos        []VideoFile
+	scanError     string
+	folderPath    string
+	outputDir     string
+	textinput     textinput.Model
+	processingMsg string
 }
 
 func initialModel() model {
@@ -37,9 +43,10 @@ func initialModel() model {
 	ti.CharLimit = 256
 	ti.Width = 40
 	return model{
-		state:      menu,
-		menuIndex:  0,
-		textinput:  ti,
+		state:          menu,
+		menuIndex:      0,
+		outputMenuIndex: 0,
+		textinput:      ti,
 	}
 }
 

@@ -31,8 +31,29 @@ func (m model) View() string {
 			s += fmt.Sprintf("• %s\n  Name: %s\n  Tags: %v\n  Path: %s\n\n",
 				v.Filename, v.Name, v.Tags, v.Path)
 		}
-		s += "Press Enter or q to return to menu."
+		s += "Press Enter to select output directory, or q to return to menu."
 		return s
+	case selectOutputDirMenu:
+		s := "Select output directory option:\n\n"
+		menuItems := []string{
+			"Use custom path",
+			fmt.Sprintf("Create 'processed' folder in %s", m.folderPath),
+		}
+		for i, item := range menuItems {
+			cursor := " "
+			if m.outputMenuIndex == i {
+				cursor = ">"
+			}
+			s += fmt.Sprintf(" %s %s\n", cursor, item)
+		}
+		s += "\nUse ↑/↓ or j/k to move, Enter to select, Esc to go back."
+		return s
+	case selectOutputDir:
+		return "Enter custom output directory path:\n\n" +
+			m.textinput.View() +
+			"\n\n(Press Enter to start processing, Esc to cancel)"
+	case processing:
+		return fmt.Sprintf("Processing videos...\n\n%s\n\nPress q to return to menu when done.", m.processingMsg)
 	case exploreFiles:
 		return "Explore files (not implemented yet).\nPress q to return to menu."
 	case done:
