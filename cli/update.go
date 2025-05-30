@@ -13,20 +13,24 @@ type processingMsg struct {
 }
 
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	switch m.state {
-	case menu:
-		switch msg := msg.(type) {
-		case tea.KeyMsg:
+	switch msg := msg.(type) {
+	case tea.KeyMsg:
+		if msg.String() == KeyQuit || msg.String() == KeyCtrlC {
+			return m, tea.Quit
+		}
+
+		switch m.state {
+		case menu:
 			switch msg.String() {
-			case "up", "k":
+			case KeyUp, "k":
 				if m.menuIndex > 0 {
 					m.menuIndex--
 				}
-			case "down", "j":
+			case KeyDown, "j":
 				if m.menuIndex < 1 {
 					m.menuIndex++
 				}
-			case "enter":
+			case KeyEnter:
 				if m.menuIndex == 0 {
 					m.state = uploadStepFolder
 					m.textinput.SetValue("")
@@ -34,13 +38,8 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				} else {
 					m.state = exploreFiles
 				}
-			case "ctrl+c", "q":
-				return m, tea.Quit
 			}
-		}
-	case uploadStepFolder:
-		switch msg := msg.(type) {
-		case tea.KeyMsg:
+		case uploadStepFolder:
 			var cmd tea.Cmd
 			m.textinput, cmd = m.textinput.Update(msg)
 			if msg.Type == tea.KeyEnter {
@@ -52,47 +51,36 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 			}
 			if msg.Type == tea.KeyEsc {
-				m.state = menu
+				m.reset()
 				return m, nil
 			}
 			return m, cmd
-		}
-	case uploadStepScan:
-		switch msg := msg.(type) {
-		case scanResultMsg:
-			if msg.err != nil {
-				m.scanError = msg.err.Error()
-				m.state = uploadStepFolder
-			} else {
-				m.videos = msg.videos
-				m.state = uploadStepSummary
-			}
-		}
-	case uploadStepSummary:
-		switch msg := msg.(type) {
-		case tea.KeyMsg:
+		case uploadStepScan:
+		case uploadStepSummary:
 			switch msg.String() {
-			case "enter":
-				m.state = selectOutputDirMenu
-			case "q":
-				m.state = menu
-			case "ctrl+c":
-				return m, tea.Quit
+			case KeyEnter:
+				if len(m.videos) == 0 {
+					m.state = uploadStepFolder
+					m.textinput.SetValue("")
+					m.textinput.Focus()
+					m.scanError = "No video files found. Please select a folder containing video files."
+				} else {
+					m.state = selectOutputDirMenu
+				}
+			case KeyEsc:
+				m.reset()
 			}
-		}
-	case selectOutputDirMenu:
-		switch msg := msg.(type) {
-		case tea.KeyMsg:
+		case selectOutputDirMenu:
 			switch msg.String() {
-			case "up", "k":
+			case KeyUp, "k":
 				if m.outputMenuIndex > 0 {
 					m.outputMenuIndex--
 				}
-			case "down", "j":
+			case KeyDown, "j":
 				if m.outputMenuIndex < 1 {
 					m.outputMenuIndex++
 				}
-			case "enter":
+			case KeyEnter:
 				if m.outputMenuIndex == 0 {
 					m.state = selectOutputDir
 					m.textinput.SetValue("")
@@ -109,13 +97,10 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 						return results
 					}
 				}
-			case "esc":
+			case KeyEsc:
 				m.state = uploadStepSummary
 			}
-		}
-	case selectOutputDir:
-		switch msg := msg.(type) {
-		case tea.KeyMsg:
+		case selectOutputDir:
 			var cmd tea.Cmd
 			m.textinput, cmd = m.textinput.Update(msg)
 			if msg.Type == tea.KeyEnter {
@@ -135,38 +120,37 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				return m, nil
 			}
 			return m, cmd
-		}
-	case processing:
-		switch msg := msg.(type) {
-		case []processingMsg:
-			var success, failure int
-			for _, result := range msg {
-				if result.result.Success {
-					success++
-				} else {
-					failure++
-				}
+		case processing:
+			if msg.String() == KeyQuit {
+				m.reset()
 			}
-			m.processingMsg = fmt.Sprintf("Processing complete!\nSuccessfully processed: %d\nFailed: %d", success, failure)
-		case tea.KeyMsg:
-			if msg.String() == "q" {
-				m.state = menu
+		case exploreFiles:
+			if msg.String() == KeyEsc || msg.String() == KeyQuit {
+				m.reset()
 			}
-		}
-	case exploreFiles:
-		switch msg := msg.(type) {
-		case tea.KeyMsg:
-			if msg.String() == "q" || msg.String() == "ctrl+c" {
-				m.state = menu
-			}
-		}
-	case done:
-		switch msg := msg.(type) {
-		case tea.KeyMsg:
-			if msg.String() == "q" || msg.String() == "ctrl+c" {
+		case done:
+			if msg.String() == KeyQuit {
 				return m, tea.Quit
 			}
 		}
+	case scanResultMsg:
+		if msg.err != nil {
+			m.scanError = msg.err.Error()
+			m.state = uploadStepFolder
+		} else {
+			m.videos = msg.videos
+			m.state = uploadStepSummary
+		}
+	case []processingMsg:
+		var success, failure int
+		for _, result := range msg {
+			if result.result.Success {
+				success++
+			} else {
+				failure++
+			}
+		}
+		m.processingMsg = fmt.Sprintf("Processing complete!\nSuccessfully processed: %d\nFailed: %d", success, failure)
 	}
 	return m, nil
 }

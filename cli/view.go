@@ -2,6 +2,11 @@ package main
 
 import "fmt"
 
+const (
+	keyHints = "\nUse ↑/↓ or j/k to move, Enter to select, Esc to go back, q to quit."
+	quitHint = "\nPress q to quit."
+)
+
 func (m model) View() string {
 	switch m.state {
 	case menu:
@@ -14,24 +19,27 @@ func (m model) View() string {
 			}
 			s += fmt.Sprintf(" %s %s\n", cursor, item)
 		}
-		s += "\nUse ↑/↓ or j/k to move, Enter to select, q to quit."
+		s += keyHints
 		return s
 	case uploadStepFolder:
-		return "Upload files\n\nPaste the path to a folder containing videos and press Enter:\n\n" +
-			m.textinput.View() +
-			"\n\n(Press Esc to cancel)"
+		s := "Upload files\n\nPaste the path to a folder containing videos and press Enter:\n\n"
+		if m.scanError != "" {
+			s += fmt.Sprintf("Error: %s\n\n", m.scanError)
+		}
+		s += m.textinput.View() + "\n\nPress Enter to continue, Esc to go back, q to quit."
+		return s
 	case uploadStepScan:
-		return "Scanning folder for video files...\n"
+		return "Scanning folder for video files..." + quitHint
 	case uploadStepSummary:
 		if len(m.videos) == 0 {
-			return "No video files found in the selected folder.\nPress Enter or q to return to menu."
+			return "No video files found in the selected folder.\nPress Enter to try again, q to quit."
 		}
 		s := "Found video files:\n\n"
 		for _, v := range m.videos {
 			s += fmt.Sprintf("• %s\n  Name: %s\n  Tags: %v\n  Path: %s\n\n",
 				v.Filename, v.Name, v.Tags, v.Path)
 		}
-		s += "Press Enter to select output directory, or q to return to menu."
+		s += "Press Enter to select output directory, q to quit."
 		return s
 	case selectOutputDirMenu:
 		s := "Select output directory option:\n\n"
@@ -46,18 +54,18 @@ func (m model) View() string {
 			}
 			s += fmt.Sprintf(" %s %s\n", cursor, item)
 		}
-		s += "\nUse ↑/↓ or j/k to move, Enter to select, Esc to go back."
+		s += keyHints
 		return s
 	case selectOutputDir:
 		return "Enter custom output directory path:\n\n" +
 			m.textinput.View() +
-			"\n\n(Press Enter to start processing, Esc to cancel)"
+			"\n\nPress Enter to start processing, Esc to go back, q to quit."
 	case processing:
-		return fmt.Sprintf("Processing videos...\n\n%s\n\nPress q to return to menu when done.", m.processingMsg)
+		return fmt.Sprintf("Processing videos...\n\n%s%s", m.processingMsg, quitHint)
 	case exploreFiles:
-		return "Explore files (not implemented yet).\nPress q to return to menu."
+		return "Explore files (not implemented yet)." + quitHint
 	case done:
-		return "Done! Press q or Ctrl+C to exit."
+		return "Done!" + quitHint
 	}
 	return ""
 }

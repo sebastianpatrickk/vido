@@ -5,6 +5,15 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 )
 
+const (
+	KeyUp    = "up"
+	KeyDown  = "down"
+	KeyEnter = "enter"
+	KeyEsc   = "esc"
+	KeyQuit  = "q"
+	KeyCtrlC = "ctrl+c"
+)
+
 type state int
 
 const (
@@ -25,15 +34,19 @@ type scanResultMsg struct {
 }
 
 type model struct {
-	state         state
-	menuIndex     int
+	state          state
+	menuIndex      int
 	outputMenuIndex int
-	videos        []VideoFile
-	scanError     string
-	folderPath    string
-	outputDir     string
-	textinput     textinput.Model
-	processingMsg string
+	videos         []VideoFile
+	scanError      string
+	folderPath     string
+	outputDir      string
+	textinput      textinput.Model
+	processingMsg  string
+}
+
+func (m *model) reset() {
+	*m = initialModel()
 }
 
 func initialModel() model {
