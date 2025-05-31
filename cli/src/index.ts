@@ -6,7 +6,6 @@ import { logger } from "./utils/logger.js"
 const main = async () => {
   const results = await runCli()
 
-  //   TODO: process the data from CLI
   console.log(results)
 
   results?.videos[0]?.tags.forEach((tag) => {

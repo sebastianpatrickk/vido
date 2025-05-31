@@ -9,6 +9,7 @@ import {
 import path from "path"
 import fs from "fs"
 import color from "picocolors"
+import { extractNameAndTags, getSupportedVideos } from "@/utils/cli.js"
 
 export interface VideoInfo {
   name: string
@@ -23,58 +24,33 @@ export interface CliResults {
   videos: VideoInfo[]
 }
 
-const SUPPORTED_FORMATS = [".mp4", ".mov", ".avi", ".mkv"]
-
-function getSupportedVideos(folderPath: string): string[] {
-  return fs
-    .readdirSync(folderPath)
-    .filter((file) =>
-      SUPPORTED_FORMATS.includes(path.extname(file).toLowerCase()),
-    )
-    .map((file) => path.join(folderPath, file))
-}
-
-function extractNameAndTags(filename: string) {
-  const ext = path.extname(filename)
-  const base = path.basename(filename, ext)
-  const [name, tagsPart] = base.split("__")
-  const tags = tagsPart ? tagsPart.split(",") : []
-  return { name, tags, fileType: ext.replace(".", "") }
-}
-
 export async function runCli(): Promise<CliResults | undefined> {
   console.clear()
 
-  // Parse command line arguments manually
-  const args = process.argv.slice(2)
-  const cliProvidedName = args[0]?.startsWith("--") ? undefined : args[0]
-
   intro(color.bgMagenta(" vido CLI "))
 
-  const rootFolderPath =
-    cliProvidedName ||
-    (await text({
-      message: "Zadejte cestu ke složce, kde máte uložená svá videa.",
-      placeholder: "např. C:/moje-videa",
-      validate: (value) => {
-        if (!value) {
-          return "Prosím zadejte cestu ke složce se zdrojovými videi."
-        }
+  const rootFolderPath = await text({
+    message: "Zadejte cestu ke složce, kde máte uložená svá videa.",
+    placeholder: "např. C:/moje-videa",
+    validate: (value) => {
+      if (!value) {
+        return "Prosím zadejte cestu ke složce se zdrojovými videi."
+      }
 
-        const folderPath = path.resolve(value)
-        if (!fs.existsSync(folderPath)) {
-          return "Zadaná složka neexistuje. Zkontrolujte prosím správnost cesty."
-        }
-        if (!fs.statSync(folderPath).isDirectory()) {
-          return "Zadaná cesta nevede ke složce. Zadejte prosím platnou složku."
-        }
-        const files = fs.readdirSync(folderPath)
-        if (files.length === 0) {
-          return "Složka je prázdná. Vyberte prosím složku, která obsahuje videa."
-        }
-        return
-      },
-    }))
+      const folderPath = path.resolve(value)
+      if (!fs.existsSync(folderPath)) {
+        return "Zadaná složka neexistuje. Zkontrolujte prosím správnost cesty."
+      }
+      if (!fs.statSync(folderPath).isDirectory()) {
+        return "Zadaná cesta nevede ke složce. Zadejte prosím platnou složku."
+      }
+      const files = fs.readdirSync(folderPath)
+      if (files.length === 0) {
+        return "Složka je prázdná. Vyberte prosím složku, která obsahuje videa."
+      }
+      return
+    },
+  })
 
   if (isCancel(rootFolderPath)) {
     outro("Nastavení bylo zrušeno.")
@@ -184,9 +160,6 @@ export async function runCli(): Promise<CliResults | undefined> {
 
   if (outputFolderOption === "default") {
     outputFolderPath = path.join(rootFolderPath as string, "generated")
-    if (!fs.existsSync(outputFolderPath)) {
-      fs.mkdirSync(outputFolderPath, { recursive: true })
-    }
   }
 
   return {
