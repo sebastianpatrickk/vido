@@ -6,6 +6,6 @@ const config = {
   semi: false,
   trailingComma: "all",
   tabWidth: 2,
-};
+}
 
-export default config;
+export default config

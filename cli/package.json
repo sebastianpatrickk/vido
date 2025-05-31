@@ -1,0 +1,43 @@
+{
+  "name": "cli",
+  "version": "0.0.0",
+  "description": "",
+  "main": "index.js",
+  "type": "module",
+  "exports": "./dist/index.js",
+  "files": [
+    "dist",
+    "template",
+    "package.json"
+  ],
+  "bin": {
+    "upload-vido": "./dist/index.js"
+  },
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "start": "node dist/index.js",
+    "copy-base-template": "tsx scripts/copy-base-template.ts"
+  },
+  "keywords": [],
+  "author": "Sebastian Patrick Klen",
+  "license": "ISC",
+  "packageManager": "pnpm@10.8.1",
+  "dependencies": {
+    "@clack/prompts": "^0.8.1",
+    "chalk": "^5.3.0",
+    "execa": "^9.5.2",
+    "fs-extra": "^11.2.0",
+    "ora": "^8.1.1",
+    "picocolors": "^1.1.1",
+    "tsup": "^8.3.5"
+  },
+  "devDependencies": {
+    "@types/fs-extra": "^11.0.4",
+    "@types/node": "^22.9.1",
+    "boxen": "^8.0.1",
+    "dotenv": "^16.4.7",
+    "type-fest": "^4.27.0",
+    "typescript": "^5.6.3"
+  }
+}
