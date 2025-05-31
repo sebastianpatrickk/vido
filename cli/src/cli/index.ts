@@ -1,11 +1,45 @@
-import { intro, isCancel, outro, select, text } from "@clack/prompts"
+import {
+  intro,
+  isCancel,
+  outro,
+  select,
+  text,
+  multiselect,
+} from "@clack/prompts"
 import path from "path"
 import fs from "fs"
 import color from "picocolors"
 
+export interface VideoInfo {
+  name: string
+  tags: string[]
+  fileType: string
+  path: string
+}
+
 export interface CliResults {
   rootFolderPath: string
   outputFolderPath: string
+  videos: VideoInfo[]
+}
+
+const SUPPORTED_FORMATS = [".mp4", ".mov", ".avi", ".mkv"]
+
+function getSupportedVideos(folderPath: string): string[] {
+  return fs
+    .readdirSync(folderPath)
+    .filter((file) =>
+      SUPPORTED_FORMATS.includes(path.extname(file).toLowerCase()),
+    )
+    .map((file) => path.join(folderPath, file))
+}
+
+function extractNameAndTags(filename: string) {
+  const ext = path.extname(filename)
+  const base = path.basename(filename, ext)
+  const [name, tagsPart] = base.split("__")
+  const tags = tagsPart ? tagsPart.split(",") : []
+  return { name, tags, fileType: ext.replace(".", "") }
 }
 
 export async function runCli(): Promise<CliResults | undefined> {
@@ -47,6 +81,61 @@ export async function runCli(): Promise<CliResults | undefined> {
     return undefined
   }
 
+  const allVideoPaths = getSupportedVideos(rootFolderPath as string)
+
+  if (allVideoPaths.length === 0) {
+    outro("Ve složce nebyla nalezena žádná podporovaná videa.")
+    return undefined
+  }
+
+  const selectAllOrSome = await select<"all" | "pick">({
+    message: "Chcete použít všechna videa, nebo si vybrat jen některá?",
+    options: [
+      { value: "all", label: "Použít všechna videa" },
+      { value: "pick", label: "Vybrat konkrétní videa" },
+    ],
+  })
+
+  if (isCancel(selectAllOrSome)) {
+    outro("Nastavení bylo zrušeno.")
+    return undefined
+  }
+
+  let selectedVideoPaths = allVideoPaths
+
+  if (selectAllOrSome === "pick") {
+    const videoOptions = allVideoPaths.map((filePath) => {
+      const file = path.basename(filePath)
+      return {
+        value: filePath,
+        label: file,
+      }
+    })
+
+    const result = await multiselect({
+      message: "Vyberte videa, která chcete použít:",
+      options: videoOptions,
+      required: true,
+    })
+
+    if (isCancel(result) || !Array.isArray(result) || result.length === 0) {
+      outro("Nastavení bylo zrušeno nebo nebylo vybráno žádné video.")
+      return undefined
+    }
+
+    selectedVideoPaths = result
+  }
+
+  const videos: VideoInfo[] = selectedVideoPaths.map((filePath) => {
+    const { name, tags, fileType } = extractNameAndTags(path.basename(filePath))
+    return {
+      name: name || path.basename(filePath, path.extname(filePath)),
+      tags,
+      fileType,
+      path: filePath,
+    }
+  })
+
   const outputFolderOption = await select<"default" | "custom">({
     message: "Kam si přejete ukládat vygenerovaná videa?",
     options: [
@@ -63,10 +152,10 @@ export async function runCli(): Promise<CliResults | undefined> {
     return undefined
   }
 
-  let outputFolderPath = undefined
+  let outputFolderPath: string | undefined = undefined
 
   if (outputFolderOption === "custom") {
-    outputFolderPath = await text({
+    const result = await text({
       message:
         "Zadejte cestu ke složce, do které chcete ukládat vygenerovaná videa:",
       placeholder: "např. C:/moje-videa/vystup",
@@ -85,14 +174,16 @@ export async function runCli(): Promise<CliResults | undefined> {
       },
     })
 
-    if (isCancel(outputFolderPath)) {
+    if (isCancel(result)) {
       outro("Nastavení bylo zrušeno.")
       return undefined
     }
+
+    outputFolderPath = result
   }
 
   if (outputFolderOption === "default") {
-    outputFolderPath = path.join(rootFolderPath, "generated")
+    outputFolderPath = path.join(rootFolderPath as string, "generated")
     if (!fs.existsSync(outputFolderPath)) {
       fs.mkdirSync(outputFolderPath, { recursive: true })
     }
@@ -101,5 +192,6 @@ export async function runCli(): Promise<CliResults | undefined> {
   return {
     rootFolderPath: rootFolderPath as string,
     outputFolderPath: outputFolderPath as string,
+    videos,
   }
 }

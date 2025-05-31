@@ -1,45 +1,17 @@
 // #!/usr/bin/env node
 
-import fs from "fs-extra"
-import path from "path"
-
 import { runCli } from "./cli/index.js"
 import { logger } from "./utils/logger.js"
-// import { scaffoldProject } from "./helpers/scaffold-project.js"
-// import { buildInstallerMap } from "./installers/index.js"
-// import { installDependencies } from "./helpers/install-deps.js"
 
 const main = async () => {
   const results = await runCli()
 
+  //   TODO: process the data from CLI
   console.log(results)
 
-  //   if (!results) {
-  //     return
-  //   }
-
-  //   const { projectName, orm, dialect, provider } = results
-
-  //   const installers = buildInstallerMap(orm, provider)
-
-  //   const projectDir = await scaffoldProject({
-  //     orm,
-  //     dialect,
-  //     databaseProvider: provider ?? "neon",
-  //     installers,
-  //     projectName,
-  //   })
-
-  //   const pkgJson = fs.readJSONSync(path.join(projectDir, "package.json"))
-  //   pkgJson.name = projectName
-
-  //   fs.writeJSONSync(path.join(projectDir, "package.json"), pkgJson, {
-  //     spaces: 2,
-  //   })
-
-  //   if (!results.noInstall) {
-  //     await installDependencies({ projectDir })
-  //   }
+  results?.videos[0]?.tags.forEach((tag) => {
+    console.log(tag)
+  })
 
   process.exit(0)
 }
