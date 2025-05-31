@@ -1,11 +1,23 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"strings"
+)
 
 const (
 	keyHints = "\nUse ↑/↓ or j/k to move, Enter to select, Esc to go back, q to quit."
 	quitHint = "\nPress q to quit."
 )
+
+func renderProgressBar(progress float64, width int) string {
+	filled := int(float64(width) * progress)
+	empty := width - filled
+	return fmt.Sprintf("[%s%s] %.1f%%",
+		strings.Repeat("=", filled),
+		strings.Repeat(" ", empty),
+		progress*100)
+}
 
 func (m model) View() string {
 	switch m.state {
@@ -61,7 +73,23 @@ func (m model) View() string {
 			m.textinput.View() +
 			"\n\nPress Enter to start processing, Esc to go back, q to quit."
 	case processing:
-		return fmt.Sprintf("Processing videos...\n\n%s%s", m.processingMsg, quitHint)
+		s := "Processing videos...\n\n"
+		
+		// Show overall progress
+		s += fmt.Sprintf("Overall Progress: %s\n\n", renderProgressBar(m.progress, 40))
+		
+		// Show current video progress
+		if m.totalVideos > 0 {
+			s += fmt.Sprintf("Processing video %d of %d\n", m.currentVideo+1, m.totalVideos)
+		}
+		
+		// Show current operation
+		if m.processingMsg != "" {
+			s += fmt.Sprintf("\n%s\n", m.processingMsg)
+		}
+		
+		s += quitHint
+		return s
 	case exploreFiles:
 		return "Explore files (not implemented yet)." + quitHint
 	case done:

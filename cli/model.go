@@ -43,6 +43,9 @@ type model struct {
 	outputDir      string
 	textinput      textinput.Model
 	processingMsg  string
+	currentVideo   int
+	totalVideos    int
+	progress       float64
 }
 
 func (m *model) reset() {
@@ -60,6 +63,9 @@ func initialModel() model {
 		menuIndex:      0,
 		outputMenuIndex: 0,
 		textinput:      ti,
+		progress:       0,
+		currentVideo:   0,
+		totalVideos:    0,
 	}
 }
 

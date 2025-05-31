@@ -56,10 +56,18 @@ type ProcessingResult struct {
 	Message string
 }
 
-func processVideo(inputPath, outputDir string) ProcessingResult {
+type ProcessingProgress struct {
+	CurrentVideo int
+	TotalVideos  int
+	Progress     float64
+	Message      string
+}
+
+func processVideo(inputPath, outputDir string, currentVideo, totalVideos int) (ProcessingResult, ProcessingProgress) {
 	// Create output directory if it doesn't exist
 	if err := os.MkdirAll(outputDir, 0755); err != nil {
-		return ProcessingResult{Success: false, Message: fmt.Sprintf("Failed to create output directory: %v", err)}
+		return ProcessingResult{Success: false, Message: fmt.Sprintf("Failed to create output directory: %v", err)},
+			ProcessingProgress{CurrentVideo: currentVideo, TotalVideos: totalVideos, Progress: 0, Message: "Failed to create output directory"}
 	}
 
 	// Get the base filename without extension
@@ -69,7 +77,8 @@ func processVideo(inputPath, outputDir string) ProcessingResult {
 	// Create specific output directory for this video
 	videoOutputDir := filepath.Join(outputDir, basename)
 	if err := os.MkdirAll(videoOutputDir, 0755); err != nil {
-		return ProcessingResult{Success: false, Message: fmt.Sprintf("Failed to create video output directory: %v", err)}
+		return ProcessingResult{Success: false, Message: fmt.Sprintf("Failed to create video output directory: %v", err)},
+			ProcessingProgress{CurrentVideo: currentVideo, TotalVideos: totalVideos, Progress: 0, Message: "Failed to create video output directory"}
 	}
 
 	// Define resolutions, bitrates, and output names
@@ -83,6 +92,10 @@ func processVideo(inputPath, outputDir string) ProcessingResult {
 		bitrate := bitrates[i]
 		playlist := fmt.Sprintf("%s.m3u8", outputName)
 
+		// Calculate progress for this resolution
+		progress := float64(i) / float64(len(resolutions))
+		overallProgress := (float64(currentVideo) + progress) / float64(totalVideos)
+
 		// Set profile and level based on resolution
 		profile := "main"
 		level := "3.1"
@@ -94,7 +107,6 @@ func processVideo(inputPath, outputDir string) ProcessingResult {
 			level = "4.2"
 		}
 
-		// Construct FFmpeg command
 		cmd := exec.Command("ffmpeg", "-y",
 			"-i", inputPath,
 			"-c:v", "libx264",
@@ -117,7 +129,8 @@ func processVideo(inputPath, outputDir string) ProcessingResult {
 			filepath.Join(videoOutputDir, playlist))
 
 		if err := cmd.Run(); err != nil {
-			return ProcessingResult{Success: false, Message: fmt.Sprintf("Failed to process %s: %v", outputName, err)}
+			return ProcessingResult{Success: false, Message: fmt.Sprintf("Failed to process %s: %v", outputName, err)},
+				ProcessingProgress{CurrentVideo: currentVideo, TotalVideos: totalVideos, Progress: overallProgress, Message: fmt.Sprintf("Failed to process %s", outputName)}
 		}
 	}
 
@@ -136,10 +149,12 @@ func processVideo(inputPath, outputDir string) ProcessingResult {
 	}
 
 	if err := os.WriteFile(masterPlaylist, []byte(content), 0644); err != nil {
-		return ProcessingResult{Success: false, Message: fmt.Sprintf("Failed to create master playlist: %v", err)}
+		return ProcessingResult{Success: false, Message: fmt.Sprintf("Failed to create master playlist: %v", err)},
+			ProcessingProgress{CurrentVideo: currentVideo, TotalVideos: totalVideos, Progress: 1.0, Message: "Failed to create master playlist"}
 	}
 
-	return ProcessingResult{Success: true, Message: fmt.Sprintf("Successfully processed video to %s", videoOutputDir)}
+	return ProcessingResult{Success: true, Message: fmt.Sprintf("Successfully processed video to %s", videoOutputDir)},
+		ProcessingProgress{CurrentVideo: currentVideo, TotalVideos: totalVideos, Progress: 1.0, Message: fmt.Sprintf("Completed processing %s", basename)}
 }
 
 func parseBitrate(bitrate string) int {

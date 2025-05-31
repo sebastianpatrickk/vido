@@ -10,6 +10,7 @@ import (
 type processingMsg struct {
 	videoIndex int
 	result     ProcessingResult
+	progress   ProcessingProgress
 }
 
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -88,11 +89,14 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				} else {
 					m.outputDir = filepath.Join(m.folderPath, "processed")
 					m.state = processing
+					m.totalVideos = len(m.videos)
+					m.currentVideo = 0
+					m.progress = 0
 					return m, func() tea.Msg {
 						var results []processingMsg
 						for i, video := range m.videos {
-							result := processVideo(video.Path, m.outputDir)
-							results = append(results, processingMsg{i, result})
+							result, progress := processVideo(video.Path, m.outputDir, i, len(m.videos))
+							results = append(results, processingMsg{i, result, progress})
 						}
 						return results
 					}
@@ -106,11 +110,14 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if msg.Type == tea.KeyEnter {
 				m.outputDir = m.textinput.Value()
 				m.state = processing
+				m.totalVideos = len(m.videos)
+				m.currentVideo = 0
+				m.progress = 0
 				return m, func() tea.Msg {
 					var results []processingMsg
 					for i, video := range m.videos {
-						result := processVideo(video.Path, m.outputDir)
-						results = append(results, processingMsg{i, result})
+						result, progress := processVideo(video.Path, m.outputDir, i, len(m.videos))
+						results = append(results, processingMsg{i, result, progress})
 					}
 					return results
 				}
@@ -149,6 +156,9 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			} else {
 				failure++
 			}
+			m.currentVideo = result.videoIndex
+			m.progress = result.progress.Progress
+			m.processingMsg = result.progress.Message
 		}
 		m.processingMsg = fmt.Sprintf("Processing complete!\nSuccessfully processed: %d\nFailed: %d", success, failure)
 	}
