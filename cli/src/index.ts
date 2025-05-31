@@ -6,11 +6,15 @@ import { logger } from "./utils/logger.js"
 const main = async () => {
   const results = await runCli()
 
-  console.log(results)
+  if (!results) {
+    return
+  }
 
-  results?.videos[0]?.tags.forEach((tag) => {
-    console.log(tag)
-  })
+  const { rootFolderPath, outputFolderPath, videos } = results
+
+  // TODO: Convert videos with FFMPEG
+  // TODO: Create references in Convex
+  // TODO: Sync output folder into r2 with cludflare r2 sync comand
 
   process.exit(0)
 }
