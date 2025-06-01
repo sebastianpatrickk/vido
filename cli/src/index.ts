@@ -12,20 +12,20 @@ const main = async () => {
     return
   }
 
-  const { rootFolderPath, outputFolderPath, videos } = results
+  const { outputFolderPath, videos } = results
 
   logger.info(color.cyan("\nStarting video processing..."))
 
   for (const video of videos) {
     try {
-      logger.info(color.yellow(`\nProcessing video: ${video.name}`)) // Highlight video being processed
+      logger.info(color.yellow(`\nProcessing video: ${video.name}`))
       await processVideoWithFFmpeg({
         inputFile: video.path,
         outputDir: outputFolderPath,
       })
-      logger.info(color.green(`✓ Successfully processed ${video.name}`)) // Green checkmark for success
+      logger.info(color.green(`✓ Successfully processed ${video.name}`))
     } catch (error) {
-      logger.error(color.red(`✗ Failed to process video ${video.name}:`)) // Red cross for failure
+      logger.error(color.red(`✗ Failed to process video ${video.name}:`))
       if (error instanceof Error) {
         logger.error(color.red(error.message))
       } else {
