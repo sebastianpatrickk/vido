@@ -10,6 +10,7 @@
   "license": "ISC",
   "packageManager": "pnpm@10.8.1",
   "dependencies": {
+    "nanoid": "^5.1.5",
     "prettier": "^3.5.3"
   }
 }

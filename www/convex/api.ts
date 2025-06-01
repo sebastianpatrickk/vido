@@ -1,0 +1,52 @@
+import { internal } from "./_generated/api"
+import { httpAction } from "./_generated/server"
+
+export const uploadHandler = httpAction(async (ctx, req) => {
+  const { files } = await req.json()
+  return new Response(JSON.stringify({ message: "ok", files }), {
+    status: 200,
+  })
+})
+
+export const validateApiKeyHandler = httpAction(async (ctx, req) => {
+  try {
+    const authHeader = req.headers.get("Authorization")
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return new Response(
+        JSON.stringify({ error: "Missing or invalid Authorization header" }),
+        {
+          status: 401,
+          headers: { "Content-Type": "application/json" },
+        },
+      )
+    }
+
+    const apiKey = authHeader.substring(7)
+
+    const validation = await ctx.runMutation(internal.apiKeys.validateApiKey, {
+      key: apiKey,
+    })
+
+    if (!validation) {
+      return new Response(JSON.stringify({ error: "Invalid API key" }), {
+        status: 401,
+        headers: { "Content-Type": "application/json" },
+      })
+    }
+
+    return new Response(
+      JSON.stringify({
+        message: "ok",
+      }),
+      {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      },
+    )
+  } catch (error) {
+    return new Response(JSON.stringify({ error: "Internal server error" }), {
+      status: 500,
+      headers: { "Content-Type": "application/json" },
+    })
+  }
+})
