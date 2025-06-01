@@ -12,7 +12,7 @@ const main = async () => {
     return
   }
 
-  const { outputFolderPath, videos } = results
+  const { outputFolderPath, videos, shouldUpload } = results
 
   logger.info(color.cyan("\nStarting video processing..."))
 

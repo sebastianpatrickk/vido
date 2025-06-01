@@ -5,11 +5,14 @@ import {
   select,
   text,
   multiselect,
+  spinner,
 } from "@clack/prompts"
 import path from "path"
 import fs from "fs"
 import color from "picocolors"
 import { extractNameAndTags, getSupportedVideos } from "@/utils/cli.js"
+import { CONVEX_HTTP_URL } from "@/constants.js"
+import axios from "axios"
 
 export interface VideoInfo {
   name: string
@@ -22,6 +25,7 @@ export interface CliResults {
   rootFolderPath: string
   outputFolderPath: string
   videos: VideoInfo[]
+  shouldUpload: boolean
 }
 
 export async function runCli(): Promise<CliResults | undefined> {
@@ -162,9 +166,72 @@ export async function runCli(): Promise<CliResults | undefined> {
     outputFolderPath = path.join(rootFolderPath as string, "generated")
   }
 
+  const shouldUpload = await select<boolean>({
+    message: "Chcete vygenerovaná videa automaticky nahrát na server?",
+    options: [
+      {
+        value: true,
+        label: "Ano, nahrát videa na server",
+      },
+      { value: false, label: "Ne, pouze vygenerovat videa" },
+    ],
+  })
+
+  if (isCancel(shouldUpload)) {
+    outro("Nastavení bylo zrušeno.")
+    return undefined
+  }
+
+  if (shouldUpload) {
+    let authToken: string | symbol
+    let isValid = false
+
+    while (!isValid) {
+      authToken = await text({
+        message: "Zadejte váš API klíč:",
+        placeholder: "např. ak_csCQeSFwEsneb9ZenhbP49jwtcZnMbQq",
+        validate: (value) => {
+          if (!value) {
+            return "Prosím zadejte API klíč."
+          }
+          return
+        },
+      })
+
+      if (isCancel(authToken)) {
+        outro("Nastavení bylo zrušeno.")
+        return undefined
+      }
+
+      const s = await spinner()
+      s.start("Ověřuji API klíč...")
+
+      try {
+        const response = await axios.get(
+          CONVEX_HTTP_URL + "/api/validate-api-key",
+          {
+            headers: {
+              Authorization: `Bearer ${authToken}`,
+            },
+          },
+        )
+
+        if (response.status === 200) {
+          isValid = true
+          s.stop(color.green("API klíč je platný."))
+        } else {
+          s.stop(color.red("Neplatný API klíč. Zkuste to znovu."))
+        }
+      } catch (error) {
+        s.stop(color.red("Chyba při ověřování API klíče. Zkuste to znovu."))
+      }
+    }
+  }
+
   return {
     rootFolderPath: rootFolderPath as string,
     outputFolderPath: outputFolderPath as string,
     videos,
+    shouldUpload,
   }
 }
