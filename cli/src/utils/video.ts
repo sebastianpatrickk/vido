@@ -4,6 +4,9 @@ import path from "path"
 import { logger } from "./logger.js"
 import color from "picocolors"
 import ora from "ora"
+import { VideoInfo } from "@/cli/index.js"
+import axios from "axios"
+import { CONVEX_HTTP_URL } from "@/constants.js"
 
 interface VideoProcessingOptions {
   inputFile: string
@@ -185,4 +188,38 @@ export async function processVideoWithFFmpeg({
 
   logger.info(color.green(`\n✓ Video processing complete for ${basename}.`))
   logger.info(color.green(`Output directory: ${finalOutputDir}`))
+}
+
+export async function createVideoReferences(
+  videos: VideoInfo[],
+  authToken: string,
+) {
+  const uploadSpinner = ora(`Vytvářím reference pro videa.`).start()
+
+  try {
+    const response = await axios.post(
+      `${CONVEX_HTTP_URL}/api/upload`,
+      { videos },
+      {
+        headers: {
+          Authorization: `Bearer ${authToken}`,
+          "Content-Type": "application/json",
+        },
+      },
+    )
+
+    if (response.status === 201) {
+      uploadSpinner.succeed(
+        color.green(`Reference pro videa byly úspěšně vytvořeny.`),
+      )
+
+      console.log("Odpověď serveru:", response.data)
+      return response.data
+    } else {
+      throw new Error(`Chyba při vytváření referencí videí.`)
+    }
+  } catch (error) {
+    uploadSpinner.fail(color.red(`Chyba při vytváření referencí videí.`))
+    throw error
+  }
 }

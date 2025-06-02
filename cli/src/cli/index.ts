@@ -26,6 +26,7 @@ export interface CliResults {
   outputFolderPath: string
   videos: VideoInfo[]
   shouldUpload: boolean
+  authToken: string | undefined
 }
 
 export async function runCli(): Promise<CliResults | undefined> {
@@ -182,12 +183,12 @@ export async function runCli(): Promise<CliResults | undefined> {
     return undefined
   }
 
+  let actualAuthToken: string | undefined = undefined
   if (shouldUpload) {
-    let authToken: string | symbol
     let isValid = false
 
     while (!isValid) {
-      authToken = await text({
+      const authToken: string | symbol = await text({
         message: "Zadejte váš API klíč:",
         placeholder: "např. ak_csCQeSFwEsneb9ZenhbP49jwtcZnMbQq",
         validate: (value) => {
@@ -218,6 +219,7 @@ export async function runCli(): Promise<CliResults | undefined> {
 
         if (response.status === 200) {
           isValid = true
+          actualAuthToken = authToken
           s.stop(color.green("API klíč je platný."))
         } else {
           s.stop(color.red("Neplatný API klíč. Zkuste to znovu."))
@@ -233,5 +235,6 @@ export async function runCli(): Promise<CliResults | undefined> {
     outputFolderPath: outputFolderPath as string,
     videos,
     shouldUpload,
+    authToken: actualAuthToken,
   }
 }

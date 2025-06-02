@@ -2,7 +2,7 @@
 
 import { runCli } from "./cli/index.js"
 import { logger } from "./utils/logger.js"
-import { processVideoWithFFmpeg } from "./utils/video.js"
+import { createVideoReferences, processVideoWithFFmpeg } from "./utils/video.js"
 import color from "picocolors"
 
 const main = async () => {
@@ -12,7 +12,7 @@ const main = async () => {
     return
   }
 
-  const { outputFolderPath, videos, shouldUpload } = results
+  const { outputFolderPath, videos, authToken, shouldUpload } = results
 
   logger.info(color.cyan("\nStarting video processing..."))
 
@@ -36,14 +36,16 @@ const main = async () => {
 
   logger.info(color.cyan("\nVideo processing complete."))
 
-  // TODO: Create references in Convex
+  if (shouldUpload && authToken) {
+    await createVideoReferences(videos, authToken)
+  }
   // TODO: Sync output folder into r2 with cludflare r2 sync comand
 
   process.exit(0)
 }
 
 main().catch((err) => {
-  logger.error(color.red("Aborting installation..."))
+  logger.error(color.red("Aborting generation..."))
   if (err instanceof Error) {
     logger.error(color.red(err.message))
   } else {
