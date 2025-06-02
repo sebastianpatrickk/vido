@@ -4,10 +4,19 @@ import { v } from "convex/values"
 
 const schema = defineSchema({
   ...authTables,
-  tasks: defineTable({
-    completed: v.boolean(),
+  videos: defineTable({
     name: v.string(),
   }),
+  tags: defineTable({
+    name: v.string(),
+  }).index("by_name", ["name"]),
+  videoTags: defineTable({
+    videoId: v.id("videos"),
+    tagId: v.id("tags"),
+  })
+    .index("by_videoId", ["videoId"])
+    .index("by_tagId", ["tagId"]),
+
   apiKeys: defineTable({
     userId: v.id("users"),
     name: v.string(),

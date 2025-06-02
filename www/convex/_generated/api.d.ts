@@ -19,6 +19,7 @@ import type * as auth from "../auth.js";
 import type * as functions from "../functions.js";
 import type * as generateApiKey from "../generateApiKey.js";
 import type * as http from "../http.js";
+import type * as video from "../video.js";
 
 /**
  * A utility for referencing Convex functions in your app's API.
@@ -35,6 +36,7 @@ declare const fullApi: ApiFromModules<{
   functions: typeof functions;
   generateApiKey: typeof generateApiKey;
   http: typeof http;
+  video: typeof video;
 }>;
 export declare const api: FilterApi<
   typeof fullApi,
