@@ -240,10 +240,63 @@ export async function processVideoWithFFmpeg({
   logger.info(color.green(`Output directory: ${finalOutputDir}`))
 
   const mp4OutputPath = path.join(finalOutputDir, `${basename}.mp4`)
+
   await fs.promises.copyFile(inputFile, mp4OutputPath)
   logger.info(
     color.green(`Copied original mp4 to output directory as ${basename}.mp4`),
   )
+
+  const { width: copiedWidth, height: copiedHeight } =
+    await getVideoDimensions(inputFile)
+  const isPortraitMp4 = copiedHeight > copiedWidth
+  const targetResolution = isPortraitMp4 ? "608x1080" : "1920x1080"
+  const profile = isPortraitMp4 ? "high" : "high"
+  const level = isPortraitMp4 ? "4.2" : "4.2"
+  const [w, h] = targetResolution.split("x")
+  const vf = `scale=w=${w}:h=${h}:force_original_aspect_ratio=decrease,pad=${w}:${h}:(ow-iw)/2:(oh-ih)/2`
+  const transcodedPath = path.join(finalOutputDir, `${basename}_transcoded.mp4`)
+  const transcodeSpinner = ora(
+    `Transcoding copied mp4 to ${targetResolution}...`,
+  ).start()
+
+  try {
+    await execa("ffmpeg", [
+      "-y",
+      "-i",
+      mp4OutputPath,
+      "-c:v",
+      "libx264",
+      "-preset",
+      "veryfast",
+      "-profile:v",
+      profile,
+      "-level:v",
+      level,
+      "-b:v",
+      "2500k",
+      "-vf",
+      vf,
+      "-pix_fmt",
+      "yuv420p",
+      "-c:a",
+      "aac",
+      "-b:a",
+      "128k",
+      "-ac",
+      "2",
+      transcodedPath,
+    ])
+
+    await fs.promises.rename(transcodedPath, mp4OutputPath)
+    transcodeSpinner.succeed(
+      color.green(`Transcoded ${basename}.mp4 to ${targetResolution}`),
+    )
+  } catch (error) {
+    transcodeSpinner.fail(
+      color.red(`Failed to transcode ${basename}.mp4 to ${targetResolution}`),
+    )
+    logger.error(error)
+  }
 }
 
 export async function createVideoReferences(
