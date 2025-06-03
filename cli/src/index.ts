@@ -80,6 +80,7 @@ const main = async () => {
       }
     }
 
+    // TODO: First create the video references, add ids into videos array then use the ids as names of the folders to R2
     logger.info(color.cyan("\nCreating video references..."))
     try {
       await createVideoReferences(videos, authToken)
