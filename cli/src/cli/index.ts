@@ -27,6 +27,11 @@ export interface CliResults {
   videos: VideoInfo[]
   shouldUpload: boolean
   authToken: string | undefined
+  r2AccountId?: string
+  r2BucketName?: string
+  r2Region?: string
+  r2AccessKeyId?: string
+  r2SecretAccessKey?: string
 }
 
 export async function runCli(): Promise<CliResults | undefined> {
@@ -184,9 +189,13 @@ export async function runCli(): Promise<CliResults | undefined> {
   }
 
   let actualAuthToken: string | undefined = undefined
+  let r2AccountId: string | undefined = undefined
+  let r2BucketName: string | undefined = undefined
+  let r2Region: string | undefined = undefined
+  let r2AccessKeyId: string | undefined = undefined
+  let r2SecretAccessKey: string | undefined = undefined
   if (shouldUpload) {
     let isValid = false
-
     while (!isValid) {
       const authToken: string | symbol = await text({
         message: "Zadejte váš API klíč:",
@@ -198,15 +207,12 @@ export async function runCli(): Promise<CliResults | undefined> {
           return
         },
       })
-
       if (isCancel(authToken)) {
         outro("Nastavení bylo zrušeno.")
         return undefined
       }
-
       const s = await spinner()
       s.start("Ověřuji API klíč...")
-
       try {
         const response = await axios.get(
           CONVEX_HTTP_URL + "/api/validate-api-key",
@@ -216,10 +222,9 @@ export async function runCli(): Promise<CliResults | undefined> {
             },
           },
         )
-
         if (response.status === 200) {
           isValid = true
-          actualAuthToken = authToken
+          actualAuthToken = authToken as string
           s.stop(color.green("API klíč je platný."))
         } else {
           s.stop(color.red("Neplatný API klíč. Zkuste to znovu."))
@@ -228,13 +233,52 @@ export async function runCli(): Promise<CliResults | undefined> {
         s.stop(color.red("Chyba při ověřování API klíče. Zkuste to znovu."))
       }
     }
+    r2AccountId = String(
+      await text({
+        message: "Zadejte Cloudflare R2 Account ID:",
+        validate: (v) => (v ? undefined : "Account ID je povinný"),
+      }),
+    )
+    if (isCancel(r2AccountId)) return undefined
+    r2BucketName = String(
+      await text({
+        message: "Zadejte Cloudflare R2 Bucket Name:",
+        validate: (v) => (v ? undefined : "Bucket Name je povinný"),
+      }),
+    )
+    if (isCancel(r2BucketName)) return undefined
+    r2Region = String(
+      await text({
+        message: "Zadejte Cloudflare R2 Region (např. auto):",
+        validate: (v) => (v ? undefined : "Region je povinný"),
+      }),
+    )
+    if (isCancel(r2Region)) return undefined
+    r2AccessKeyId = String(
+      await text({
+        message: "Zadejte Cloudflare R2 Access Key ID:",
+        validate: (v) => (v ? undefined : "Access Key ID je povinný"),
+      }),
+    )
+    if (isCancel(r2AccessKeyId)) return undefined
+    r2SecretAccessKey = String(
+      await text({
+        message: "Zadejte Cloudflare R2 Secret Access Key:",
+        validate: (v) => (v ? undefined : "Secret Access Key je povinný"),
+      }),
+    )
+    if (isCancel(r2SecretAccessKey)) return undefined
   }
-
   return {
     rootFolderPath: rootFolderPath as string,
     outputFolderPath: outputFolderPath as string,
     videos,
     shouldUpload,
     authToken: actualAuthToken,
+    r2AccountId,
+    r2BucketName,
+    r2Region,
+    r2AccessKeyId,
+    r2SecretAccessKey,
   }
 }

@@ -4,6 +4,15 @@ import { runCli } from "./cli/index.js"
 import { logger } from "./utils/logger.js"
 import { createVideoReferences, processVideoWithFFmpeg } from "./utils/video.js"
 import color from "picocolors"
+import { uploadDirectoryToR2 } from "./utils/upload.js"
+import path from "path"
+import {
+  CLOUDFLARE_R2_ACCESS_KEY_ID,
+  CLOUDFLARE_R2_ACCOUNT_ID,
+  CLOUDFLARE_R2_BUCKET_NAME,
+  CLOUDFLARE_R2_REGION,
+  CLOUDFLARE_R2_SECRET_ACCESS_KEY,
+} from "./constants.js"
 
 const main = async () => {
   const results = await runCli()
@@ -37,9 +46,53 @@ const main = async () => {
   logger.info(color.cyan("\nVideo processing complete."))
 
   if (shouldUpload && authToken) {
-    await createVideoReferences(videos, authToken)
+    logger.info(color.cyan("\nStarting video uploads to R2..."))
+    const {
+      r2AccountId,
+      r2BucketName,
+      r2Region,
+      r2AccessKeyId,
+      r2SecretAccessKey,
+    } = results
+
+    for (const video of videos) {
+      try {
+        const basename = path.basename(video.path, path.extname(video.path))
+        const videoOutputDir = path.join(outputFolderPath, basename)
+        logger.info(color.yellow(`\nUploading ${video.name} to R2...`))
+        await uploadDirectoryToR2(
+          CLOUDFLARE_R2_ACCOUNT_ID,
+          CLOUDFLARE_R2_BUCKET_NAME,
+          CLOUDFLARE_R2_REGION,
+          CLOUDFLARE_R2_ACCESS_KEY_ID,
+          CLOUDFLARE_R2_SECRET_ACCESS_KEY,
+          videoOutputDir,
+          video.name, // use video name as R2 prefix
+        )
+        logger.info(color.green(`✓ Uploaded ${video.name} to R2`))
+      } catch (error) {
+        logger.error(color.red(`✗ Failed to upload ${video.name} to R2:`))
+        if (error instanceof Error) {
+          logger.error(color.red(error.message))
+        } else {
+          logger.error(color.red("Unknown upload error occurred"))
+        }
+      }
+    }
+
+    logger.info(color.cyan("\nCreating video references..."))
+    try {
+      await createVideoReferences(videos, authToken)
+      logger.info(color.green("✓ Video references created successfully"))
+    } catch (error) {
+      logger.error(color.red("✗ Failed to create video references:"))
+      if (error instanceof Error) {
+        logger.error(color.red(error.message))
+      } else {
+        logger.error(color.red("Unknown error occurred"))
+      }
+    }
   }
-  // TODO: Sync output folder into r2 with cludflare r2 sync comand
 
   process.exit(0)
 }
