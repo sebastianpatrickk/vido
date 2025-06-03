@@ -90,6 +90,8 @@ async function processVideo(
     config.bitrate,
     "-s",
     config.resolution,
+    "-pix_fmt",
+    "yuv420p",
     "-c:a",
     "aac",
     "-b:a",
@@ -188,6 +190,12 @@ export async function processVideoWithFFmpeg({
 
   logger.info(color.green(`\n✓ Video processing complete for ${basename}.`))
   logger.info(color.green(`Output directory: ${finalOutputDir}`))
+
+  const mp4OutputPath = path.join(finalOutputDir, `${basename}.mp4`)
+  await fs.promises.copyFile(inputFile, mp4OutputPath)
+  logger.info(
+    color.green(`Copied original mp4 to output directory as ${basename}.mp4`),
+  )
 }
 
 export async function createVideoReferences(
