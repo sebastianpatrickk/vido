@@ -21,7 +21,27 @@ interface ResolutionConfig {
   level: string
 }
 
-const RESOLUTIONS: ResolutionConfig[] = [
+async function getVideoDimensions(
+  inputFile: string,
+): Promise<{ width: number; height: number }> {
+  const { stdout } = await execa("ffprobe", [
+    "-v",
+    "error",
+    "-select_streams",
+    "v:0",
+    "-show_entries",
+    "stream=width,height",
+    "-of",
+    "csv=s=x:p=0",
+    inputFile,
+  ])
+  const [widthStr, heightStr] = stdout.split("x")
+  const width = Number(widthStr) || 0
+  const height = Number(heightStr) || 0
+  return { width, height }
+}
+
+const RESOLUTIONS_16_9: ResolutionConfig[] = [
   {
     resolution: "1280x720",
     bitrate: "1200k",
@@ -38,6 +58,30 @@ const RESOLUTIONS: ResolutionConfig[] = [
   },
   {
     resolution: "3840x2160",
+    bitrate: "8000k",
+    outputName: "2160p",
+    profile: "high",
+    level: "5.1",
+  },
+]
+
+const RESOLUTIONS_9_16: ResolutionConfig[] = [
+  {
+    resolution: "404x720",
+    bitrate: "1200k",
+    outputName: "720p",
+    profile: "main",
+    level: "3.1",
+  },
+  {
+    resolution: "608x1080",
+    bitrate: "2500k",
+    outputName: "1080p",
+    profile: "high",
+    level: "4.2",
+  },
+  {
+    resolution: "1216x2160",
     bitrate: "8000k",
     outputName: "2160p",
     profile: "high",
@@ -162,13 +206,17 @@ export async function processVideoWithFFmpeg({
 
   await fs.promises.mkdir(finalOutputDir, { recursive: true })
 
+  const { width, height } = await getVideoDimensions(inputFile)
+  const isPortrait = height > width
+  const resolutions = isPortrait ? RESOLUTIONS_9_16 : RESOLUTIONS_16_9
+
   const frameRate = await getFrameRate(inputFile)
   logger.info(color.blue(`\nDetected frame rate: ${frameRate} fps`))
 
   const gopSize = frameRate * 4
 
   logger.info(color.cyan("\nStarting resolution processing..."))
-  for (const config of RESOLUTIONS) {
+  for (const config of resolutions) {
     const processSpinner = ora(`Processing ${config.outputName}`).start()
     try {
       await processVideo(inputFile, finalOutputDir, config, gopSize)
@@ -181,7 +229,7 @@ export async function processVideoWithFFmpeg({
 
   const playlistSpinner = ora("Generating master playlist").start()
   try {
-    await generateMasterPlaylist(finalOutputDir, RESOLUTIONS)
+    await generateMasterPlaylist(finalOutputDir, resolutions)
     playlistSpinner.succeed(color.green("Master playlist generated."))
   } catch (error) {
     playlistSpinner.fail(color.red("Failed to generate master playlist."))
