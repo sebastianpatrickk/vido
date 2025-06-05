@@ -35,7 +35,7 @@ export const uploadHandler = httpAction(async (ctx, req) => {
   })
 
   return new Response(
-    JSON.stringify({ message: "ok", videos: createdVideos }),
+    JSON.stringify({ message: "ok", videos: createdVideos.createdVideos }),
     {
       status: 201,
     },

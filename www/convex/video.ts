@@ -42,14 +42,13 @@ export const createVideos = zCreateVideosInternalMutation({
       tagNameToId[tagName] = tagId
     }
 
-    const createdVideoIds: string[] = []
+    const createdVideos: { id: Id<"videos">; name: string }[] = []
 
     for (const video of videos) {
       const videoId = await ctx.db.insert("videos", {
         name: video.name,
       })
-
-      createdVideoIds.push(videoId)
+      createdVideos.push({ id: videoId, name: video.name })
 
       for (const tagName of video.tags) {
         const tagId = tagNameToId[tagName] as Id<"tags">
@@ -61,10 +60,7 @@ export const createVideos = zCreateVideosInternalMutation({
     }
 
     return {
-      createdVideos: createdVideoIds.length,
-      createdTags: missingTagNames.length,
-      newTags: missingTagNames,
-      videoIds: createdVideoIds,
+      createdVideos,
     }
   },
 })

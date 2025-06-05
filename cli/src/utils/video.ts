@@ -4,7 +4,7 @@ import path from "path"
 import { logger } from "./logger.js"
 import color from "picocolors"
 import ora from "ora"
-import { VideoInfo } from "@/cli/index.js"
+import { VideoInfo, VideoReference } from "@/types.js"
 import axios from "axios"
 import { CONVEX_HTTP_URL } from "@/constants.js"
 
@@ -322,8 +322,7 @@ export async function createVideoReferences(
         color.green(`Reference pro videa byly úspěšně vytvořeny.`),
       )
 
-      console.log("Odpověď serveru:", response.data)
-      return response.data
+      return response.data.videos
     } else {
       throw new Error(`Chyba při vytváření referencí videí.`)
     }
