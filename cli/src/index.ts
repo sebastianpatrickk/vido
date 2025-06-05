@@ -13,6 +13,7 @@ import {
   CLOUDFLARE_R2_REGION,
   CLOUDFLARE_R2_SECRET_ACCESS_KEY,
 } from "./constants.js"
+import { VideoReference } from "./types.js"
 
 const main = async () => {
   const results = await runCli()
@@ -46,16 +47,32 @@ const main = async () => {
   logger.info(color.cyan("\nVideo processing complete."))
 
   if (shouldUpload && authToken) {
-    logger.info(color.cyan("\nStarting video uploads to R2..."))
-    const {
-      r2AccountId,
-      r2BucketName,
-      r2Region,
-      r2AccessKeyId,
-      r2SecretAccessKey,
-    } = results
+    logger.info(color.cyan("\nCreating video references..."))
+    let videoRefs: VideoReference[]
+    try {
+      videoRefs = (await createVideoReferences(
+        videos,
+        authToken,
+      )) as VideoReference[]
 
-    for (const video of videos) {
+      logger.info(color.green("✓ Video references created successfully"))
+    } catch (error) {
+      logger.error(color.red("✗ Failed to create video references:"))
+      if (error instanceof Error) {
+        logger.error(color.red(error.message))
+      } else {
+        logger.error(color.red("Unknown error occurred"))
+      }
+      process.exit(1)
+    }
+
+    const videoRefsMap = videos.map((video) => {
+      const ref = videoRefs.find((r) => r.name === video.name)
+      return { ...video, id: ref?.id }
+    })
+
+    logger.info(color.cyan("\nStarting video uploads to R2..."))
+    for (const video of videoRefsMap) {
       try {
         const basename = path.basename(video.path, path.extname(video.path))
         const videoOutputDir = path.join(outputFolderPath, basename)
@@ -67,7 +84,7 @@ const main = async () => {
           CLOUDFLARE_R2_ACCESS_KEY_ID,
           CLOUDFLARE_R2_SECRET_ACCESS_KEY,
           videoOutputDir,
-          video.name, // use video name as R2 prefix
+          video.id,
         )
         logger.info(color.green(`✓ Uploaded ${video.name} to R2`))
       } catch (error) {
@@ -77,20 +94,6 @@ const main = async () => {
         } else {
           logger.error(color.red("Unknown upload error occurred"))
         }
-      }
-    }
-
-    // TODO: First create the video references, add ids into videos array then use the ids as names of the folders to R2
-    logger.info(color.cyan("\nCreating video references..."))
-    try {
-      await createVideoReferences(videos, authToken)
-      logger.info(color.green("✓ Video references created successfully"))
-    } catch (error) {
-      logger.error(color.red("✗ Failed to create video references:"))
-      if (error instanceof Error) {
-        logger.error(color.red(error.message))
-      } else {
-        logger.error(color.red("Unknown error occurred"))
       }
     }
   }

@@ -13,26 +13,7 @@ import color from "picocolors"
 import { extractNameAndTags, getSupportedVideos } from "@/utils/cli.js"
 import { CONVEX_HTTP_URL } from "@/constants.js"
 import axios from "axios"
-
-export interface VideoInfo {
-  name: string
-  tags: string[]
-  fileType: string
-  path: string
-}
-
-export interface CliResults {
-  rootFolderPath: string
-  outputFolderPath: string
-  videos: VideoInfo[]
-  shouldUpload: boolean
-  authToken: string | undefined
-  r2AccountId?: string
-  r2BucketName?: string
-  r2Region?: string
-  r2AccessKeyId?: string
-  r2SecretAccessKey?: string
-}
+import { CliResults, VideoInfo } from "@/types.js"
 
 export async function runCli(): Promise<CliResults | undefined> {
   console.clear()
